@@ -6,14 +6,14 @@ datasetsRouter.post('/', (req, res) => {
   //Check if received data is a file or normal data
   if (req.is('multipart/form-data')) {
     const form = new IncomingForm()
-    form.on('file', async (field, file) => {
+    form.on('file', (field, file) => {
       //Do things with the received file
       if (!fileUtil.validate(file)) {
         //Not a valid file, return error code
         //return
       }
-      console.log(fileUtil.read(file))
-      //console.log(file)
+      const dataset = fileUtil.read(file)
+      console.log(dataset)
     })
     form.on('end', () => {
       res.json()

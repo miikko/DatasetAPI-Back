@@ -2,7 +2,7 @@ const fs = require('fs')
 const jsCharDet = require('jschardet')
 const iconv = require('iconv-lite')
 
-const supportedFileExtensions = ['.arff', '.csv', '.json']
+const supportedFileExtensions = ['arff', 'csv', 'json']
 
 const validate = (file) => {
   const encoding = getEncoding(file)
@@ -13,16 +13,14 @@ const validate = (file) => {
   return supportedFileExtensions.includes(getFileExtension(file)) ? true : false
 }
 
-const read = async (file) => {
-  const dataset = {}
-  await fs.readFile(file.path, (err, data) => {
-    if (err) {
-      throw err
-    }
-    const content = iconv.decode(data, getEncoding(file))
-    const fileExtension = getFileExtension(file)
-  })
-
+const read = (file) => {
+  const contentBuffer = fs.readFileSync(file.path)
+  const content = iconv.decode(contentBuffer, getEncoding(file))
+  const fileExtension = getFileExtension(file)
+  if (fileExtension === 'arff') {
+    return require('./arffUtil').parseDataset(content)
+  }
+  
 }
 
 const getEncoding = (file) => {

@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 mongoose.set("useFindAndModify", false)
 
 const datasetSchema = mongoose.Schema({
+  name: { type: String, required: true },
   relation: String,
   headers: { type: [], required: true },
   instances: {type: [[String]], required: true }

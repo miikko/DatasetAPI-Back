@@ -16,6 +16,7 @@ datasetsRouter.post('/', async (req, res) => {
       try {
         const dataset = fileUtil.read(file)
         const datasetObject = new Dataset({
+          name: req.body.name,
           relation: dataset.relation,
           headers: dataset.headers,
           instances: dataset.instances
@@ -43,6 +44,8 @@ datasetsRouter.post('/', async (req, res) => {
         throw new Error('Received dataset contained missing attribute values!')
       }
       const dataset = new Dataset({
+        name: body.name,
+        relation: body.relation,
         headers: body.headers,
         instances: body.instances
       })

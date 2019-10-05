@@ -1,34 +1,32 @@
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
+const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const datasetsRouter = require('./datasets')
+const middleware = require('./utils/middleware')
 
 const server = express()
 
-/*
-const corsOptions = {
-  origin: '*',
-  optionsSuccessStatus: 200
-}*/
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log('connected to MongoDB')
+  })
+  .catch((error) => {
+    console.log('error connecting to MongoDB: ' + error.message)
+  })
 
-const requestLogger = (req, res, next) => {
-  console.log('Method:', req.method)
-  console.log('Path:  ', req.path)
-  console.log('Body:  ', req.body)
-  console.log('Headers: ', req.headers)
-  console.log('---')
-  next()
-}
-
-server.use(cors(/*corsOptions*/))
+server.use(cors())
 server.use(bodyParser.json())
-server.use(requestLogger)
+server.use(middleware.requestLogger)
 
 server.use('/datasets', datasetsRouter)
 
 //Create errorHandler and use it here
+server.use(middleware.errorHandler)
+server.use(middleware.unknownEndpoint)
 
-const PORT = 8000
+const PORT = process.env.PORT
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)

@@ -1,5 +1,3 @@
-
-
 const parseDataset = (content) => {
   const dataset = {}
   const lines = content.split('\n')
@@ -8,13 +6,12 @@ const parseDataset = (content) => {
   let lineNum = 0
   lines.forEach(line => {
     lineNum++
-    //Check if line is empty/whitespace
+    //Check if line is empty/whitespace or comment
     if (/\S/.test(line) && line.charAt(0) !== '%') {
-      const modLine = line.split('\r')[0]
-      console.log(modLine)
+      const modLine = line.split('\r')[0].replace('\t', ' ')
       if (readingDataInstances) {
         const dataInstance = parseDataInstance(modLine)
-        if (dataInstance.length !== dataset.attributes.length) {
+        if (dataInstance.length !== dataset.headers.length) {
           console.log(`Data instance (on line ${lineNum}) value count didnt match the specification`)
           throw new Error('Invalid .arff-file')
         }
@@ -27,7 +24,7 @@ const parseDataset = (content) => {
           throw new Error('Invalid .arff-file')
         }
         const attribute = parseAttribute(modLine)
-        dataset.attributes ? dataset.attributes.push(attribute) : dataset.attributes = [attribute]
+        dataset.headers ? dataset.headers.push(attribute) : dataset.headers = [attribute]
       } else if (modLine.substring(0, 5).toUpperCase() === '@DATA') {
         if (!relationFound) {
           throw new Error('Invalid .arff-file')
@@ -43,10 +40,9 @@ const parseRelation = (line) => {
   if (line.indexOf("'") !== -1) {
     return line.split("'")[1]
   }
-  return line.split(/\s/)[1]
+  return line.split(' ').filter(Boolean)[1]
 }
 
-//Bugs with iris-dataset, 2 of the attribute types dont appear
 const parseAttribute = (line) => {
   const attribute = {}
   if (line.indexOf('{') !== -1) {
@@ -60,9 +56,10 @@ const parseAttribute = (line) => {
       attribute.type = restOfLine.replace(/ /g, '').toUpperCase()
     }
   } else {
-    attribute.name = line.split(/\s/)[1]
+    attribute.name = line.split(' ').filter(Boolean)[1]
     if (!attribute.type) {
-      attribute.type = line.split(/\s/)[2].toUpperCase()
+      //.filter(Boolean) is for removing empty strings that might appear after the split()
+      attribute.type = line.split(' ').filter(Boolean)[2].toUpperCase()
     }
   }
   return attribute

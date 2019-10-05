@@ -19,8 +19,11 @@ const read = (file) => {
   const fileExtension = getFileExtension(file)
   if (fileExtension === 'arff') {
     return require('./arffUtil').parseDataset(content)
+  } else if (fileExtension === 'csv') {
+    return require('./csvUtil').parseDataset(content)
+  } else if (fileExtension === 'json') {
+    return JSON.parse(content)
   }
-  
 }
 
 const getEncoding = (file) => {

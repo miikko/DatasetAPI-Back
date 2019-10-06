@@ -1,0 +1,1 @@
+In order to use this backend, a .env file needs to be created in the projects root directory. The file should contain values for PORT and MONGODB_URI. If using the matching frontend, PORT should be set to 8000

@@ -26,6 +26,23 @@ const read = (file) => {
   }
 }
 
+const write = (dataset, fileExtension) => {
+  if (!supportedFileExtensions.includes(fileExtension)) {
+    throw new Error('Requested file-extension is not supported')
+  }
+  const fileName = `${dataset.name}.${fileExtension}`
+  let content = ''
+  if (fileExtension === 'arff') {
+    content = require('./arffUtil').datasetToString(dataset)
+  } else if (fileExtension === 'csv') {
+    //TODO: creat
+  } else if (fileExtension === 'json') {
+    content = JSON.stringify(dataset)
+  }
+  fs.writeFileSync(`temp/${fileName}`, content)
+  return fileName
+}
+
 const getEncoding = (file) => {
   return jsCharDet.detect(fs.readFileSync(file.path)).encoding
 }
@@ -34,4 +51,4 @@ const getFileExtension = (file) => {
   return file.name.split('.').pop()
 }
 
-module.exports = { validate, read }
+module.exports = { validate, read, write }

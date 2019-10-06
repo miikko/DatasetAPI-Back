@@ -16,7 +16,7 @@ datasetsRouter.post('/', async (req, res) => {
       try {
         const dataset = fileUtil.read(file)
         const datasetObject = new Dataset({
-          name: req.body.name,
+          name: file.name.split('.')[0],
           relation: dataset.relation,
           headers: dataset.headers,
           instances: dataset.instances
@@ -83,6 +83,22 @@ datasetsRouter.get('/:id', async (req, res, next) => {
   }
 })
 
+datasetsRouter.get('/:id/:format', async (req, res, next) => {
+  try {
+    const dataset = await Dataset.findById(req.params.id)
+    if (dataset) {
+      const fileName = fileUtil.write(dataset.toJSON(), req.params.format)
+      const path = `${__dirname}/temp/${fileName}`
+      res.download(path)
+      //TODO: remove file after sending it to save space
+    } else {
+      res.status(204).end()
+    }
+  } catch (exception) {
+    next(exception)
+  }
+})
+
 datasetsRouter.delete('/:id', async (req, res, next) => {
   try {
     //TODO: Validate token
@@ -91,7 +107,7 @@ datasetsRouter.delete('/:id', async (req, res, next) => {
     res.status(204).end()
   } catch (exception) {
     next(exception)
-  }  
+  }
 })
 
 const saveDataset = async (dataset) => {

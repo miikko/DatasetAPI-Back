@@ -22,7 +22,7 @@ datasetsRouter.post('/', async (req, res) => {
           instances: dataset.instances
         })
         saveDataset(datasetObject)
-        console.log(dataset)
+        //console.log(dataset)
       } catch (exception) {
         //Failed to read a dataset from the given file, return error code
         console.log(exception)
@@ -33,8 +33,6 @@ datasetsRouter.post('/', async (req, res) => {
       res.status(201).end()
     })
     form.parse(req)
-    //If received data is a file, use fileUtil to validate
-    //and parse the data to a mongoose Object
     console.log('Request contains a file')
   } else if (req.is('application/json')) {
     console.log('Request contains json data')
@@ -89,8 +87,14 @@ datasetsRouter.get('/:id/:format', async (req, res, next) => {
     if (dataset) {
       const fileName = fileUtil.write(dataset.toJSON(), req.params.format)
       const path = `${__dirname}/temp/${fileName}`
-      res.download(path)
-      //TODO: remove file after sending it to save space
+      //Remove file after creating it to save memory
+      res.download(path, (err) => {
+        if (err) {
+          console.log(err)
+        } else {
+          fileUtil.remove(path)
+        }
+      })
     } else {
       res.status(204).end()
     }
@@ -112,6 +116,7 @@ datasetsRouter.delete('/:id', async (req, res, next) => {
 
 const saveDataset = async (dataset) => {
   const savedDataset = await dataset.save()
+  return savedDataset
 }
 
 module.exports = datasetsRouter

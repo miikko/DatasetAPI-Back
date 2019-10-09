@@ -43,6 +43,10 @@ const write = (dataset, fileExtension) => {
   return fileName
 }
 
+const remove = (path) => {
+  fs.unlinkSync(path)
+}
+
 const getEncoding = (file) => {
   return jsCharDet.detect(fs.readFileSync(file.path)).encoding
 }
@@ -51,4 +55,4 @@ const getFileExtension = (file) => {
   return file.name.split('.').pop()
 }
 
-module.exports = { validate, read, write }
+module.exports = { validate, read, write, remove }

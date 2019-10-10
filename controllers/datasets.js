@@ -1,12 +1,21 @@
 const datasetsRouter = require('express').Router()
 const IncomingForm = require('formidable').IncomingForm
-const fileUtil = require('./utils/fileUtil')
-const Dataset = require('./models/dataset')
+const fileUtil = require('../utils/fileUtil')
+const Dataset = require('../models/dataset')
+const User = require('../models/user')
 
-datasetsRouter.post('/', async (req, res) => {
+datasetsRouter.post('/', async (req, res, next) => {
   //TODO: Add user info to dataset, check if the user info is valid
   //Check if received data is a file or normal data
+  const body = req.body
+  let user
+  try {
+    user = await User.findById(body.userId)
+  } catch (exception) {
+    next(exception)
+  }
   if (req.is('multipart/form-data')) {
+    console.log('Request contains a file')
     const form = new IncomingForm()
     form.on('file', (field, file) => {
       //Do things with the received file
@@ -19,9 +28,10 @@ datasetsRouter.post('/', async (req, res) => {
           name: file.name.split('.')[0],
           relation: dataset.relation,
           headers: dataset.headers,
-          instances: dataset.instances
+          instances: dataset.instances,
+          user: user._id
         })
-        saveDataset(datasetObject)
+        saveDataset(datasetObject, user)
         //console.log(dataset)
       } catch (exception) {
         //Failed to read a dataset from the given file, return error code
@@ -33,10 +43,8 @@ datasetsRouter.post('/', async (req, res) => {
       res.status(201).end()
     })
     form.parse(req)
-    console.log('Request contains a file')
   } else if (req.is('application/json')) {
     console.log('Request contains json data')
-    const body = req.body
     try {
       if (body.headers.length !== body.instances[0].length) {
         throw new Error('Received dataset contained missing attribute values!')
@@ -45,9 +53,10 @@ datasetsRouter.post('/', async (req, res) => {
         name: body.name,
         relation: body.relation,
         headers: body.headers,
-        instances: body.instances
+        instances: body.instances,
+        user: user._id
       })
-      await saveDataset(dataset)
+      await saveDataset(dataset, user)
       res.status(201).end()
     } catch (exception) {
       //Received data was in the wrong format
@@ -60,7 +69,8 @@ datasetsRouter.post('/', async (req, res) => {
 
 datasetsRouter.get('/', async (req, res) => {
   try {
-    const datasets = await Dataset.find({})
+    const datasets = await Dataset
+      .find({}).populate('user', { username: 1 })
     res.json(datasets.map(dataset => dataset.toJSON()))
   } catch (exception) {
     console.log(exception)
@@ -70,7 +80,8 @@ datasetsRouter.get('/', async (req, res) => {
 
 datasetsRouter.get('/:id', async (req, res, next) => {
   try {
-    const dataset = await Dataset.findById(req.params.id)
+    const dataset = await Dataset
+      .findById(req.params.id).populate('user', { username: 1 })
     if (dataset) {
       res.json(dataset.toJSON())
     } else {
@@ -114,8 +125,10 @@ datasetsRouter.delete('/:id', async (req, res, next) => {
   }
 })
 
-const saveDataset = async (dataset) => {
+const saveDataset = async (dataset, user) => {
   const savedDataset = await dataset.save()
+  user.datasets = user.datasets.concat(savedDataset._id)
+  await user.save()
   return savedDataset
 }
 

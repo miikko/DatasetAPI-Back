@@ -3,7 +3,9 @@ const express = require('express')
 const cors = require('cors')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
-const datasetsRouter = require('./datasets')
+const datasetsRouter = require('./controllers/datasets')
+const usersRouter = require('./controllers/users')
+const loginRouter = require('./controllers/login')
 const middleware = require('./utils/middleware')
 
 const server = express()
@@ -21,8 +23,9 @@ server.use(bodyParser.json())
 server.use(middleware.requestLogger)
 
 server.use('/datasets', datasetsRouter)
+server.use('/users', usersRouter)
+server.use('/login', loginRouter)
 
-//Create errorHandler and use it here
 server.use(middleware.errorHandler)
 server.use(middleware.unknownEndpoint)
 

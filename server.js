@@ -21,6 +21,7 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 server.use(cors())
 server.use(bodyParser.json())
 server.use(middleware.requestLogger)
+server.use(middleware.tokenExtractor)
 
 server.use('/datasets', datasetsRouter)
 server.use('/users', usersRouter)

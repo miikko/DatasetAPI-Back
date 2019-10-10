@@ -1,19 +1,30 @@
 const datasetsRouter = require('express').Router()
 const IncomingForm = require('formidable').IncomingForm
 const fileUtil = require('../utils/fileUtil')
+const jwt = require('jsonwebtoken')
 const Dataset = require('../models/dataset')
 const User = require('../models/user')
+
+const validateToken = (req, res, next) => {
+  try {
+    const decodedToken = jwt.verify(req.token, process.env.SECRET)
+    if (!req.token || !decodedToken.id) {
+      res.status(401).json({ error: 'token missing or invalid' })
+    }
+    return decodedToken
+  } catch (exception) {
+    next(exception)
+  }
+}
 
 datasetsRouter.post('/', async (req, res, next) => {
   //TODO: Add user info to dataset, check if the user info is valid
   //Check if received data is a file or normal data
   const body = req.body
   let user
-  try {
-    user = await User.findById(body.userId)
-  } catch (exception) {
-    next(exception)
-  }
+  //NEEDS TESTING!!!!!!!
+  const token = validateToken(req, res, next)
+  user = await User.findById(token.id)
   if (req.is('multipart/form-data')) {
     console.log('Request contains a file')
     const form = new IncomingForm()
@@ -116,9 +127,12 @@ datasetsRouter.get('/:id/:format', async (req, res, next) => {
 
 datasetsRouter.delete('/:id', async (req, res, next) => {
   try {
-    //TODO: Validate token
-
-    await Dataset.findByIdAndRemove(req.params.id)
+    //NEEDS TESTING!!!!!!!
+    const token = validateToken(req, res, next)
+    const datasetToRemove = await Dataset.findById(req.params.id)
+    if (token.id.toString() !== datasetToRemove.user._id.toString()) {
+      return res.status(401).json({ error: 'invalid user' })
+    }
     res.status(204).end()
   } catch (exception) {
     next(exception)

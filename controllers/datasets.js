@@ -10,6 +10,7 @@ const validateToken = (req, res, next) => {
     const decodedToken = jwt.verify(req.token, process.env.SECRET)
     if (!req.token || !decodedToken.id) {
       res.status(401).json({ error: 'token missing or invalid' })
+      return
     }
     return decodedToken
   } catch (exception) {
@@ -18,13 +19,13 @@ const validateToken = (req, res, next) => {
 }
 
 datasetsRouter.post('/', async (req, res, next) => {
-  //TODO: Add user info to dataset, check if the user info is valid
-  //Check if received data is a file or normal data
-  const body = req.body
-  let user
-  //NEEDS TESTING!!!!!!!
   const token = validateToken(req, res, next)
-  user = await User.findById(token.id)
+  if (!token) {
+    return
+  }
+  const body = req.body
+  const user = await User.findById(token.id)
+  //Check if received data is a file or normal data
   if (req.is('multipart/form-data')) {
     console.log('Request contains a file')
     const form = new IncomingForm()
@@ -108,7 +109,8 @@ datasetsRouter.get('/:id/:format', async (req, res, next) => {
     const dataset = await Dataset.findById(req.params.id)
     if (dataset) {
       const fileName = fileUtil.write(dataset.toJSON(), req.params.format)
-      const path = `${__dirname}/temp/${fileName}`
+      // eslint-disable-next-line no-undef
+      const path = `${appRoot}/temp/${fileName}`
       //Remove file after creating it to save memory
       res.download(path, (err) => {
         if (err) {
@@ -126,9 +128,11 @@ datasetsRouter.get('/:id/:format', async (req, res, next) => {
 })
 
 datasetsRouter.delete('/:id', async (req, res, next) => {
+  const token = validateToken(req, res, next)
+  if (!token) {
+    return
+  }
   try {
-    //NEEDS TESTING!!!!!!!
-    const token = validateToken(req, res, next)
     const datasetToRemove = await Dataset.findById(req.params.id)
     if (token.id.toString() !== datasetToRemove.user._id.toString()) {
       return res.status(401).json({ error: 'invalid user' })

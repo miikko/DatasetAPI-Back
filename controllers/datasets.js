@@ -44,14 +44,13 @@ datasetsRouter.post('/', async (req, res, next) => {
           user: user._id
         })
         saveDataset(datasetObject, user)
-        //console.log(dataset)
       } catch (exception) {
         //Failed to read a dataset from the given file, return error code
         console.log(exception)
         res.status(400).send({ error: exception.message })
       }
     })
-    form.on('end', () => {
+    form.on('end', async () => {
       res.status(201).end()
     })
     form.parse(req)
@@ -68,8 +67,10 @@ datasetsRouter.post('/', async (req, res, next) => {
         instances: body.instances,
         user: user._id
       })
-      await saveDataset(dataset, user)
-      res.status(201).end()
+      const savedDataset = await saveDataset(dataset, user)
+      const datasetWithUser = await Dataset.findById(savedDataset.id)
+        .populate('user', { username: 1 })
+      res.status(201).json(datasetWithUser.toJSON())
     } catch (exception) {
       //Received data was in the wrong format
       res.status(400).send({ error: exception.message })
@@ -137,6 +138,7 @@ datasetsRouter.delete('/:id', async (req, res, next) => {
     if (token.id.toString() !== datasetToRemove.user._id.toString()) {
       return res.status(401).json({ error: 'invalid user' })
     }
+    await Dataset.findByIdAndDelete(req.params.id)
     res.status(204).end()
   } catch (exception) {
     next(exception)

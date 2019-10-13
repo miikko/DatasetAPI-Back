@@ -18,6 +18,16 @@ const validateToken = (req, res, next) => {
   }
 }
 
+const saveDataset = async (dataset, user) => {
+  const savedDataset = await dataset.save()
+  console.log(savedDataset.name)
+  user.datasets = user.datasets.concat(savedDataset._id)
+  await user.save()
+  const datasetWithUser = await Dataset.findById(savedDataset.id)
+        .populate('user', { username: 1 })
+  return datasetWithUser
+}
+
 datasetsRouter.post('/', async (req, res, next) => {
   const token = validateToken(req, res, next)
   if (!token) {
@@ -25,6 +35,7 @@ datasetsRouter.post('/', async (req, res, next) => {
   }
   const body = req.body
   const user = await User.findById(token.id)
+  const savePromises = []
   //Check if received data is a file or normal data
   if (req.is('multipart/form-data')) {
     console.log('Request contains a file')
@@ -43,7 +54,7 @@ datasetsRouter.post('/', async (req, res, next) => {
           instances: dataset.instances,
           user: user._id
         })
-        saveDataset(datasetObject, user)
+        savePromises.push(saveDataset(datasetObject, user))
       } catch (exception) {
         //Failed to read a dataset from the given file, return error code
         console.log(exception)
@@ -51,7 +62,8 @@ datasetsRouter.post('/', async (req, res, next) => {
       }
     })
     form.on('end', async () => {
-      res.status(201).end()
+      const savedDatasets = await Promise.all(savePromises)
+      res.status(201).json(savedDatasets.map(dataset => dataset.toJSON()))
     })
     form.parse(req)
   } else if (req.is('application/json')) {
@@ -68,9 +80,7 @@ datasetsRouter.post('/', async (req, res, next) => {
         user: user._id
       })
       const savedDataset = await saveDataset(dataset, user)
-      const datasetWithUser = await Dataset.findById(savedDataset.id)
-        .populate('user', { username: 1 })
-      res.status(201).json(datasetWithUser.toJSON())
+      res.status(201).json(savedDataset.toJSON())
     } catch (exception) {
       //Received data was in the wrong format
       res.status(400).send({ error: exception.message })
@@ -134,22 +144,20 @@ datasetsRouter.delete('/:id', async (req, res, next) => {
     return
   }
   try {
-    const datasetToRemove = await Dataset.findById(req.params.id)
+    const datasetId = req.params.id
+    const datasetToRemove = await Dataset.findById(datasetId)
     if (token.id.toString() !== datasetToRemove.user._id.toString()) {
       return res.status(401).json({ error: 'invalid user' })
     }
+    const user = await User.findById(token.id)
+    console.log(user)
+    user.datasets = user.datasets.filter(dataset => dataset.toString() !== datasetId.toString())
+    await user.save()
     await Dataset.findByIdAndDelete(req.params.id)
     res.status(204).end()
   } catch (exception) {
     next(exception)
   }
 })
-
-const saveDataset = async (dataset, user) => {
-  const savedDataset = await dataset.save()
-  user.datasets = user.datasets.concat(savedDataset._id)
-  await user.save()
-  return savedDataset
-}
 
 module.exports = datasetsRouter

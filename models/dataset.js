@@ -1,9 +1,10 @@
 const mongoose = require('mongoose')
+const uniqueValidator = require('mongoose-unique-validator')
 
 mongoose.set("useFindAndModify", false)
 
 const datasetSchema = mongoose.Schema({
-  name: { type: String, required: true },
+  name: { type: String, required: true, unique: true },
   relation: String,
   headers: { type: [], required: true },
   instances: { type: [[String]], required: true },
@@ -17,5 +18,7 @@ datasetSchema.set('toJSON', {
     delete returnedObject.__v
   }
 })
+
+datasetSchema.plugin(uniqueValidator)
 
 module.exports = mongoose.model('Dataset', datasetSchema)

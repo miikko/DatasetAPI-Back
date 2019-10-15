@@ -18,14 +18,62 @@ const validateToken = (req, res, next) => {
   }
 }
 
-const saveDataset = async (dataset, user) => {
+const saveDataset = async (dataset) => {
   const savedDataset = await dataset.save()
-  console.log(savedDataset.name)
-  user.datasets = user.datasets.concat(savedDataset._id)
-  await user.save()
   const datasetWithUser = await Dataset.findById(savedDataset.id)
         .populate('user', { username: 1 })
   return datasetWithUser
+}
+
+const handleJSONPost = async (req, res, user) => {
+  try {
+    const body = req.body
+    if (body.headers.length !== body.instances[0].length) {
+      throw new Error('Received dataset contained missing attribute values!')
+    }
+    const dataset = new Dataset({
+      name: body.name,
+      relation: body.relation,
+      headers: body.headers,
+      instances: body.instances,
+      user: user._id
+    })
+    const savedDataset = await saveDataset(dataset, user._id)
+    res.status(201).json(savedDataset.toJSON())
+  } catch (exception) {
+    //Received data was in the wrong format
+    res.status(400).send({ error: exception.message })
+  }
+}
+
+const handleFilePost = (req, res, user) => {
+  let savePromise
+  const form = new IncomingForm()
+  form.on('file', (field, file) => {
+    if (!fileUtil.validate(file)) {
+      res.status(400).send({ error: 'Invalid file extension or file encoding' })
+    }
+    try {
+      const dataset = fileUtil.read(file)
+      const datasetObject = new Dataset({
+        name: file.name.split('.')[0],
+        relation: dataset.relation,
+        headers: dataset.headers,
+        instances: dataset.instances,
+        user: user._id
+      })
+      savePromise = saveDataset(datasetObject, user._id)
+    } catch (exception) {
+      //Failed to read a dataset from the given file, return error code
+      console.log(exception)
+      res.status(400).send({ error: exception.message })
+    }
+  })
+  form.on('end', async () => {
+    const savedDataset = await savePromise
+    res.status(201).json(savedDataset.toJSON())
+  })
+  form.parse(req)
 }
 
 datasetsRouter.post('/', async (req, res, next) => {
@@ -33,58 +81,12 @@ datasetsRouter.post('/', async (req, res, next) => {
   if (!token) {
     return
   }
-  const body = req.body
   const user = await User.findById(token.id)
-  const savePromises = []
   //Check if received data is a file or normal data
   if (req.is('multipart/form-data')) {
-    console.log('Request contains a file')
-    const form = new IncomingForm()
-    form.on('file', (field, file) => {
-      //Do things with the received file
-      if (!fileUtil.validate(file)) {
-        res.status(400).send({ error: 'Invalid file extension or file encoding' })
-      }
-      try {
-        const dataset = fileUtil.read(file)
-        const datasetObject = new Dataset({
-          name: file.name.split('.')[0],
-          relation: dataset.relation,
-          headers: dataset.headers,
-          instances: dataset.instances,
-          user: user._id
-        })
-        savePromises.push(saveDataset(datasetObject, user))
-      } catch (exception) {
-        //Failed to read a dataset from the given file, return error code
-        console.log(exception)
-        res.status(400).send({ error: exception.message })
-      }
-    })
-    form.on('end', async () => {
-      const savedDatasets = await Promise.all(savePromises)
-      res.status(201).json(savedDatasets.map(dataset => dataset.toJSON()))
-    })
-    form.parse(req)
+    handleFilePost(req, res, user)
   } else if (req.is('application/json')) {
-    console.log('Request contains json data')
-    try {
-      if (body.headers.length !== body.instances[0].length) {
-        throw new Error('Received dataset contained missing attribute values!')
-      }
-      const dataset = new Dataset({
-        name: body.name,
-        relation: body.relation,
-        headers: body.headers,
-        instances: body.instances,
-        user: user._id
-      })
-      const savedDataset = await saveDataset(dataset, user)
-      res.status(201).json(savedDataset.toJSON())
-    } catch (exception) {
-      //Received data was in the wrong format
-      res.status(400).send({ error: exception.message })
-    }
+    handleJSONPost(req, res, user)
   } else {
     res.status(400).send({ error: 'Invalid content-type header' })
   }
@@ -149,11 +151,7 @@ datasetsRouter.delete('/:id', async (req, res, next) => {
     if (token.id.toString() !== datasetToRemove.user._id.toString()) {
       return res.status(401).json({ error: 'invalid user' })
     }
-    const user = await User.findById(token.id)
-    console.log(user)
-    user.datasets = user.datasets.filter(dataset => dataset.toString() !== datasetId.toString())
-    await user.save()
-    await Dataset.findByIdAndDelete(req.params.id)
+    await Dataset.findByIdAndDelete(datasetId)
     res.status(204).end()
   } catch (exception) {
     next(exception)

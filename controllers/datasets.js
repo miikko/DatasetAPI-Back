@@ -46,14 +46,13 @@ const handleJSONPost = async (req, res, user) => {
   }
 }
 
-const handleFilePost = (req, res, user) => {
+const handleFilePost = (req, res, next, user) => {
   let savePromise
   const form = new IncomingForm()
   form.on('file', (field, file) => {
     if (!fileUtil.validate(file)) {
-      res.status(400).send({ error: 'Invalid file extension or file encoding' })
+      throw Error('Invalid file extension or file encoding')
     }
-    try {
       const dataset = fileUtil.read(file)
       const datasetObject = new Dataset({
         name: file.name.split('.')[0],
@@ -63,15 +62,17 @@ const handleFilePost = (req, res, user) => {
         user: user._id
       })
       savePromise = saveDataset(datasetObject, user._id)
-    } catch (exception) {
-      //Failed to read a dataset from the given file, return error code
-      console.log(exception)
-      res.status(400).send({ error: exception.message })
-    }
   })
   form.on('end', async () => {
-    const savedDataset = await savePromise
-    res.status(201).json(savedDataset.toJSON())
+    try {
+      const savedDataset = await savePromise
+      res.status(201).json(savedDataset.toJSON())
+    } catch (exception) {
+      next(exception)
+    }
+  })
+  form.on('error', (err) => {
+    res.status(400).send({ error: err.message })
   })
   form.parse(req)
 }
@@ -84,7 +85,7 @@ datasetsRouter.post('/', async (req, res, next) => {
   const user = await User.findById(token.id)
   //Check if received data is a file or normal data
   if (req.is('multipart/form-data')) {
-    handleFilePost(req, res, user)
+    handleFilePost(req, res, next, user)
   } else if (req.is('application/json')) {
     handleJSONPost(req, res, user)
   } else {

@@ -35,7 +35,7 @@ const write = (dataset, fileExtension) => {
   if (fileExtension === 'arff') {
     content = require('./arffUtil').datasetToString(dataset)
   } else if (fileExtension === 'csv') {
-    //TODO: create
+    content = require('./csvUtil').datasetToString(dataset)
   } else if (fileExtension === 'json') {
     content = JSON.stringify(dataset)
   }

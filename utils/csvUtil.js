@@ -49,4 +49,33 @@ const parseDataset = (content) => {
   return dataset
 }
 
-module.exports = { parseDataset }
+const datasetToString = (dataset) => {
+  let content = ''
+  if (dataset.headers) {
+    dataset.headers.forEach(header => {
+      if (header.name) {
+        content += elementToString(header.name) + ','
+      } else {
+        content += elementToString(header) + ','
+      }
+    })
+    content = content.substring(0, content.length - 1) + '\n'
+  }
+  dataset.instances.forEach(instance => {
+    let line = ''
+    instance.forEach(value => {
+      line += elementToString(value) + ','
+    })
+    content += line.substring(0, line.length - 1) + '\n'
+  })
+  return content
+}
+
+const elementToString = (element) => {
+  if (element.indexOf(',') !== -1) {
+    return '"' + element + '"'
+  }
+  return element
+}
+
+module.exports = { parseDataset, datasetToString }

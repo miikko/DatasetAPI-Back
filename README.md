@@ -1,6 +1,13 @@
 # Dataset API Server
 
-## SETUP (In progress)
+## About (In progress)
+
+ * Max upload size at a time: 100 KB
+
+
+## Setup (In progress)
+
+
 
 
 ## Configuration (In progress)
@@ -22,5 +29,3 @@
 
 
 ## TODO 
-
-* Decline datasets that are bigger than a set size

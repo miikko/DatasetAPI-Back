@@ -4,6 +4,7 @@ const fileUtil = require('../utils/fileUtil')
 const jwt = require('jsonwebtoken')
 const Dataset = require('../models/dataset')
 const User = require('../models/user')
+const logger = require('../utils/logger')
 
 const validateToken = (token) => {
   const decodedToken = jwt.verify(token, process.env.SECRET)
@@ -52,27 +53,39 @@ const handleJSONPost = async (req, res, user) => {
 
 const handleFilePost = (req, res, next, user) => {
   let savePromise
+  const sizeLimitBytes = 100000
   const form = new IncomingForm()
   form.on('file', (field, file) => {
     if (!fileUtil.validate(file)) {
-      throw Error('Invalid file extension or file encoding')
+      if (!res.headersSent) {
+        return res.status(415)
+          .send({ error: 'Invalid file extension or file encoding' })
+      }
+    } else {
+      const dataset = fileUtil.read(file)
+      const datasetObject = new Dataset({
+        name: file.name.split('.')[0],
+        relation: dataset.relation,
+        headers: dataset.headers,
+        instances: dataset.instances,
+        user: user._id
+      })
+      savePromise = saveDataset(datasetObject, user._id)
     }
-    const dataset = fileUtil.read(file)
-    const datasetObject = new Dataset({
-      name: file.name.split('.')[0],
-      relation: dataset.relation,
-      headers: dataset.headers,
-      instances: dataset.instances,
-      user: user._id
-    })
-    savePromise = saveDataset(datasetObject, user._id)
   })
   form.on('end', async () => {
     try {
       const savedDataset = await savePromise
-      res.status(201).json(savedDataset.toJSON())
+      if (!res.headersSent) {
+        res.status(201).json(savedDataset.toJSON())
+      }
     } catch (exception) {
       next(exception)
+    }
+  })
+  form.on('progress', (bytesReceived, bytesExpected) => {
+    if (bytesReceived > sizeLimitBytes && !res.headersSent) {
+      return res.status(400).send({ error: 'Received form is bigger than is allowed' })
     }
   })
   form.on('error', (err) => {
@@ -128,7 +141,7 @@ datasetsRouter.get('/', async (req, res) => {
     }
     res.json(jsonDatasets)
   } catch (exception) {
-    console.log(exception)
+    logger.error(exception)
     res.status(500).end()
   }
 })
@@ -165,7 +178,7 @@ datasetsRouter.get('/:id/:format', async (req, res, next) => {
       //Remove file after creating it to save memory
       res.download(path, (err) => {
         if (err) {
-          console.log(err)
+          logger.error(err)
         } else {
           fileUtil.remove(path)
         }

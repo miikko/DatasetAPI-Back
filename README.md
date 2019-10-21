@@ -1,8 +1,16 @@
 # Dataset API Server
 
+## SETUP (In progress)
+
+
 ## Configuration (In progress)
 
- In order to use this server, some environment values should be set. These are PORT, MONGODB_URI and SECRET. If using the matching frontend PORT should be set to 8000. SECRET is used for user authentication.
+ In order to use this server, the following environment values should be set:
+ * PORT: Port in which this server runs. The matching frontend expects this to be set to 8000)
+ * MONGODB_URI: MongoDb address)
+ * SECRET: String that is used for user authentication
+ * (TEST_MONGODB_URI: MongoDb address that is used in test environment)
+
 
 ## OAuth2 Authorization Flow (Resource Owner Password Credentials)
 
@@ -12,7 +20,7 @@
 
  For more information on OAuth2, check this [link](https://oauth.net/2/)
 
+
 ## TODO 
 
 * Decline datasets that are bigger than a set size
-* Allow parameterization on Dataset GET requests

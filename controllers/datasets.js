@@ -20,6 +20,15 @@ const saveDataset = async (dataset) => {
   return datasetWithUser
 }
 
+const filterObjectKeys = (dataset, wantedKeys) => {
+  const keys = Object.keys(dataset)
+  keys.forEach(key => {
+    if (!wantedKeys.includes(key)) {
+      delete dataset[key]
+    }
+  })
+}
+
 const handleJSONPost = async (req, res, user) => {
   try {
     const body = req.body
@@ -92,9 +101,32 @@ datasetsRouter.post('/', async (req, res, next) => {
 
 datasetsRouter.get('/', async (req, res) => {
   try {
-    const datasets = await Dataset
-      .find({}).populate('user', { username: 1 })
-    res.json(datasets.map(dataset => dataset.toJSON()))
+    const datasets = await Dataset.find({}).populate('user')
+    let jsonDatasets = await Promise.all(datasets.map(dataset => dataset.toJSON()))
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',')
+      jsonDatasets.forEach(dataset => {
+        filterObjectKeys(dataset, fields)
+      })
+    }
+    if (req.query.username) {
+      jsonDatasets = jsonDatasets.filter(dataset => {
+        return dataset.user ? dataset.user.username === req.query.username : false
+      })
+    }
+    if (req.query.name) {
+      jsonDatasets = jsonDatasets.filter(dataset => {
+        return dataset.name ? dataset.name === req.query.name : false
+      })
+    }
+    if (req.query.limit_instances) {
+      jsonDatasets.forEach(dataset => {
+        if (dataset.instances) {
+          dataset.instances = dataset.instances.slice(0, req.query.limit_instances)
+        }
+      })
+    }
+    res.json(jsonDatasets)
   } catch (exception) {
     console.log(exception)
     res.status(500).end()
@@ -106,7 +138,15 @@ datasetsRouter.get('/:id', async (req, res, next) => {
     const dataset = await Dataset
       .findById(req.params.id).populate('user', { username: 1 })
     if (dataset) {
-      res.json(dataset.toJSON())
+      const jsonDataset = await dataset.toJSON()
+      if (req.query.fields) {
+        const fields = req.query.fields.split(',')
+        filterObjectKeys(jsonDataset, fields)
+      }
+      if (req.query.limit_instances && jsonDataset.instances) {
+        jsonDataset.instances = jsonDataset.instances.slice(0, req.query.limit_instances)
+      }
+      res.json(jsonDataset)
     } else {
       res.status(204).end()
     }

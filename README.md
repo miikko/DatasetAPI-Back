@@ -2,9 +2,7 @@
 
 ## Configuration (In progress)
 
- In order to use this backend, a .env file needs to be created in the projects root directory. The file should contain values for PORT, MONGODB_URI and SECRET. If using the matching frontend, PORT should be set to 8000. SECRET is used for user authentication.
-
-***
+ In order to use this server, some environment values should be set. These are PORT, MONGODB_URI and SECRET. If using the matching frontend PORT should be set to 8000. SECRET is used for user authentication.
 
 ## OAuth2 Authorization Flow (Resource Owner Password Credentials)
 
@@ -14,8 +12,7 @@
 
  For more information on OAuth2, check this [link](https://oauth.net/2/)
 
-***
-
 ## TODO 
 
-* Generate tests for endpoints
+* Decline datasets that are bigger than a set size
+* Allow parameterization on Dataset GET requests

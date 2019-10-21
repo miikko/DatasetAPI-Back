@@ -8,7 +8,11 @@ const datasetSchema = mongoose.Schema({
   relation: String,
   headers: { type: [], required: true },
   instances: { type: [[String]], required: true },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  }
 })
 
 datasetSchema.set('toJSON', {

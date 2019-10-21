@@ -5,23 +5,18 @@ const jwt = require('jsonwebtoken')
 const Dataset = require('../models/dataset')
 const User = require('../models/user')
 
-const validateToken = (req, res, next) => {
-  try {
-    const decodedToken = jwt.verify(req.token, process.env.SECRET)
-    if (!req.token || !decodedToken.id) {
-      res.status(401).json({ error: 'token missing or invalid' })
-      return
-    }
-    return decodedToken
-  } catch (exception) {
-    next(exception)
+const validateToken = (token) => {
+  const decodedToken = jwt.verify(token, process.env.SECRET)
+  if (!token || !decodedToken.id) {
+    throw new Error('token missing or invalid')
   }
+  return decodedToken
 }
 
 const saveDataset = async (dataset) => {
   const savedDataset = await dataset.save()
   const datasetWithUser = await Dataset.findById(savedDataset.id)
-        .populate('user', { username: 1 })
+    .populate('user', { username: 1 })
   return datasetWithUser
 }
 
@@ -53,15 +48,15 @@ const handleFilePost = (req, res, next, user) => {
     if (!fileUtil.validate(file)) {
       throw Error('Invalid file extension or file encoding')
     }
-      const dataset = fileUtil.read(file)
-      const datasetObject = new Dataset({
-        name: file.name.split('.')[0],
-        relation: dataset.relation,
-        headers: dataset.headers,
-        instances: dataset.instances,
-        user: user._id
-      })
-      savePromise = saveDataset(datasetObject, user._id)
+    const dataset = fileUtil.read(file)
+    const datasetObject = new Dataset({
+      name: file.name.split('.')[0],
+      relation: dataset.relation,
+      headers: dataset.headers,
+      instances: dataset.instances,
+      user: user._id
+    })
+    savePromise = saveDataset(datasetObject, user._id)
   })
   form.on('end', async () => {
     try {
@@ -78,9 +73,11 @@ const handleFilePost = (req, res, next, user) => {
 }
 
 datasetsRouter.post('/', async (req, res, next) => {
-  const token = validateToken(req, res, next)
-  if (!token) {
-    return
+  let token
+  try {
+    token = validateToken(req.token)
+  } catch (exception) {
+    return next(exception)
   }
   const user = await User.findById(token.id)
   //Check if received data is a file or normal data
@@ -142,11 +139,8 @@ datasetsRouter.get('/:id/:format', async (req, res, next) => {
 })
 
 datasetsRouter.delete('/:id', async (req, res, next) => {
-  const token = validateToken(req, res, next)
-  if (!token) {
-    return
-  }
   try {
+    const token = validateToken(req.token)
     const datasetId = req.params.id
     const datasetToRemove = await Dataset.findById(datasetId)
     if (token.id.toString() !== datasetToRemove.user._id.toString()) {

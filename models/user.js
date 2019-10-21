@@ -9,13 +9,6 @@ const userSchema = mongoose.Schema({
     minlength: 3
   },
   passwordHash: String,
-  /*
-  datasets: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Dataset'
-    }
-  ]*/
 })
 
 userSchema.set('toJSON', {

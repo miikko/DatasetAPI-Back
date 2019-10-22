@@ -32,6 +32,5 @@ app.use('/users', usersRouter)
 app.use('/login', loginRouter)
 
 app.use(middleware.errorHandler)
-app.use(middleware.unknownEndpoint)
 
 module.exports = app

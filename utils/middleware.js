@@ -10,6 +10,9 @@ const requestLogger = (req, res, next) => {
 }
 
 const errorHandler = (error, req, res, next) => {
+  if (error.kind) {
+    logger.error(error.kind)
+  }
   logger.error(error.message)
   if (error.name === 'CastError' && error.kind === 'ObjectId') {
       return res.status(400).json({ error: 'malformatted id' })
@@ -20,11 +23,7 @@ const errorHandler = (error, req, res, next) => {
           error: 'invalid token'
       })
   }
-  next(error)
-}
-
-const unknownEndpoint = (req, res) => {
-  res.status(404).send({ error: 'unknown endpoint' })
+  return res.status(404).send({ error: 'unknown endpoint' })
 }
 
 const tokenExtractor = (req, res, next) => {
@@ -36,5 +35,5 @@ const tokenExtractor = (req, res, next) => {
 }
 
 module.exports = {
-  requestLogger, unknownEndpoint, errorHandler, tokenExtractor
+  requestLogger, errorHandler, tokenExtractor
 }

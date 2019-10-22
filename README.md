@@ -2,12 +2,33 @@
 
 ## About (In progress)
 
+ * Receives and sends datasets as files and json
+ * [.csv](https://en.wikipedia.org/wiki/Comma-separated_values), [.json](https://en.wikipedia.org/wiki/JSON) and [.arff](https://www.cs.waikato.ac.nz/~ml/weka/arff.html) file formats are supported. Once a file has been uploaded, it can be downloaded as any of the previously listed formats.
+ * Some features (such as dataset uploading) require an authorization token that can be received by logging in with an account.
+ * An account can be created by sending a POST-request with credentials to the '/users' endpoint.
  * Max upload size at a time: 100 KB
 
 
+## Supported HTTP-Requests
+
+ |        | /users | /login | /datasets | /datasets/:id | /datasets/:id/:format |
+ |:------:|:------:|:------:|:---------:|:-------------:|:---------------------:|
+ | GET    | NO     | NO     | YES       | YES           | YES                   |
+ | POST   | YES    | YES    | NO        | YES           | NO                    |
+ | DELETE | TODO   | NO     | NO        | YES           | NO                    |
+
+ ### Requests that require authentication
+  
+  
+
 ## Setup (In progress)
 
+ 1. Create a Mongo Database
+ 2. Clone this repository
+ 3. Run 'npm install' inside the project folder
+ 4. Set environment variables (More on this in the Configuration section) 
 
+ To run this project in production mode, run 'npm start'. For development, run 'npm run watch'. And to run tests, run 'npm test'.
 
 
 ## Configuration (In progress)

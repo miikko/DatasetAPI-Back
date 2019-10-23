@@ -133,9 +133,13 @@ datasetsRouter.get('/', async (req, res) => {
       })
     }
     if (req.query.limit_instances) {
+      const instanceLimit = req.query.limit_instances_instances
+      if (isNaN(instanceLimit) || instanceLimit < 0) {
+        return res.status(400).send({ error: 'Query string value instance_limit was either not a number or it was not positive' })
+      }
       jsonDatasets.forEach(dataset => {
         if (dataset.instances) {
-          dataset.instances = dataset.instances.slice(0, req.query.limit_instances)
+          dataset.instances = dataset.instances.slice(0, instanceLimit)
         }
       })
     }
@@ -157,7 +161,11 @@ datasetsRouter.get('/:id', async (req, res, next) => {
         filterObjectKeys(jsonDataset, fields)
       }
       if (req.query.limit_instances && jsonDataset.instances) {
-        jsonDataset.instances = jsonDataset.instances.slice(0, req.query.limit_instances)
+        const instanceLimit = req.query.limit_instances_instances
+        if (isNaN(instanceLimit) || instanceLimit < 0) {
+          return res.status(400).send({ error: 'Query string value instance_limit was either not a number or it was not positive' })
+        }
+        jsonDataset.instances = jsonDataset.instances.slice(0, instanceLimit)
       }
       res.json(jsonDataset)
     } else {

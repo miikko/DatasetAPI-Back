@@ -4,7 +4,7 @@
 
  * Receives and sends datasets as files and json
  * Uses [MongoDB](https://www.mongodb.com/) to store datasets
- * [.csv](https://en.wikipedia.org/wiki/Comma-separated_values), [.json](https://en.wikipedia.org/wiki/JSON) and [.arff](https://www.cs.waikato.ac.nz/~ml/weka/arff.html) file formats are supported. Once a file has been uploaded, it can be downloaded as any of the previously listed formats.
+ * [.csv](https://en.wikipedia.org/wiki/Comma-separated_values), [.json](https://en.wikipedia.org/wiki/JSON) and [.arff](https://www.cs.waikato.ac.nz/~ml/weka/arff.html) file formats are supported. Once the file contents have been saved, it can be downloaded as any of the previously listed formats.
  * Some features (such as dataset uploading) require an authorization token that can be received by logging in with an account.
  * An account can be created by sending a POST-request with credentials to the '/users' endpoint.
  * Max upload size at a time: 100 KB

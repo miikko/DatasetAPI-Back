@@ -5,11 +5,12 @@
  * Receives and sends datasets as files and json
  * Uses [MongoDB](https://www.mongodb.com/) to store datasets
  * [.csv](https://en.wikipedia.org/wiki/Comma-separated_values), [.json](https://en.wikipedia.org/wiki/JSON) and [.arff](https://www.cs.waikato.ac.nz/~ml/weka/arff.html) file formats are supported. Once the file contents have been saved, it can be downloaded as any of the previously listed formats.
+ * 'testDatasets' folder contains one file for each supported fileformat. They can be used for testing.
  * Some features (such as dataset uploading) require an authorization token that can be received by logging in with an account.
  * An account can be created by sending a POST-request with credentials to the '/users' endpoint.
  * Max upload size at a time: 100 KB
  * Unit tests ready for '/datasets/' endpoint
-
+ 
 
 ## Setup
 
@@ -29,6 +30,7 @@
  * SECRET: String that is used for user authentication
  * (TEST_MONGODB_URI: MongoDB address that is used in test environment)
 
+ One way to setup environment variables is to use the [dotenv module](https://www.npmjs.com/package/dotenv) (included in package.json).
 
 ## Supported HTTP-Requests
 

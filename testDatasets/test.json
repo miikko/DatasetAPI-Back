@@ -1,0 +1,24 @@
+{
+	"headers": [
+		"TEAM",
+		"GP",
+		"W"
+	],
+	"instances": [
+		[
+			"Houston Rockets",
+			"82",
+			"65"
+		],
+		[
+			"Toronto Raptors",
+			"82",
+			"59"
+		],
+		[
+			"Golden State Warriors",
+			"82",
+			"58"
+		]
+	]
+}

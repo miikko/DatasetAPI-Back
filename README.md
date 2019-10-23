@@ -11,6 +11,25 @@
  * Unit tests ready for '/datasets/' endpoint
 
 
+## Setup
+
+ 1. Create a MongoDB database
+ 2. Clone this repository
+ 3. Run `npm install` inside the project folder
+ 4. Set environment variables (More on this in the Configuration section) 
+
+ To run this project in production mode, run `npm start`. For development, run `npm run watch`. And to run tests, run `npm test`.
+
+
+## Configuration
+
+ In order to use this server, the following environment values should be set:
+ * PORT: Port in which this server runs. The matching frontend expects this to be set to 8000)
+ * MONGODB_URI: MongoDB address)
+ * SECRET: String that is used for user authentication
+ * (TEST_MONGODB_URI: MongoDB address that is used in test environment)
+
+
 ## Supported HTTP-Requests
 
  |        | /users | /login | /datasets | /datasets/:id | /datasets/:id/:format |
@@ -113,25 +132,6 @@
    ##### GET
 
    Attaches a file with the same id as is specified in the URL parameter (:id) to the response. The file format will is specified in the ':format' URL parameter. Format options are csv, arff and json. Sent files are removed from the disk as soon as the response has been sent.
-
-
-## Setup
-
- 1. Create a MongoDB database
- 2. Clone this repository
- 3. Run `npm install` inside the project folder
- 4. Set environment variables (More on this in the Configuration section) 
-
- To run this project in production mode, run `npm start`. For development, run `npm run watch`. And to run tests, run `npm test`.
-
-
-## Configuration (In progress)
-
- In order to use this server, the following environment values should be set:
- * PORT: Port in which this server runs. The matching frontend expects this to be set to 8000)
- * MONGODB_URI: MongoDB address)
- * SECRET: String that is used for user authentication
- * (TEST_MONGODB_URI: MongoDB address that is used in test environment)
 
 
 ## OAuth2 Authorization Flow (Resource Owner Password Credentials)

@@ -56,7 +56,7 @@
 
    ##### POST 
    
-   Creates a new account with given credentials. The credentials should be passed in the request body. The account creation will fail if the username is too short (3 letter) or if it is not unique.
+   Creates a new account with given credentials. The credentials should be passed in the request body. The account creation will fail if the username is too short (3 letter) or if it is not unique. Succesful requests get an response that contains the username and id.
 
    Example body:
    ```
@@ -70,11 +70,11 @@
 
    ##### DELETE
 
-   Deletes an account with the same id as the one specified in the URL parameter. All the datasets that the user has posted will also be deleted.
+   Deletes an account with the same id as the one specified in the URL parameter. All the datasets that the account has posted will also be deleted. Upon successful request, the server will respond with an empty 204 response.
 
    ##### PUT
 
-   Updates an account with the same id as the one specified in the URL parameter. Only the password can be changed.
+   Updates an account with the same id as the one specified in the URL parameter. Only the password can be changed. Upon successful request, the server will respond with an empty 201 response.
 
    Example body:
    ```
@@ -114,7 +114,7 @@
 
    ##### POST
 
-   Saves the received dataset json to the database. The dataset contents should be placed inside the request body.
+   Saves the received dataset json to the database. The dataset contents should be placed inside the request body. Upon successful request, the server will respond with with an 201 response with the saved dataset object.
 
    Example body:
    ```
@@ -144,7 +144,7 @@
 
    ##### DELETE
 
-   Deletes the dataset with an id that matches the specified URL parameter (:id) if one exists. Users can only delete datasets that they themselves have posted (same account).
+   Deletes the dataset with an id that matches the specified URL parameter (:id) if one exists. Users can only delete datasets that they themselves have posted (same account). Upon successful request, the server will respond with an empty 204 response.
 
   #### /datasets/:id/:format
 

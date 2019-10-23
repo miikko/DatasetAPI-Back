@@ -1,18 +1,10 @@
 const datasetsRouter = require('express').Router()
 const IncomingForm = require('formidable').IncomingForm
 const fileUtil = require('../utils/fileUtil')
-const jwt = require('jsonwebtoken')
+const { validateToken } = require('../utils/authUtil')
 const Dataset = require('../models/dataset')
 const User = require('../models/user')
 const logger = require('../utils/logger')
-
-const validateToken = (token) => {
-  const decodedToken = jwt.verify(token, process.env.SECRET)
-  if (!token || !decodedToken.id) {
-    throw new Error('token missing or invalid')
-  }
-  return decodedToken
-}
 
 const saveDataset = async (dataset) => {
   const savedDataset = await dataset.save()

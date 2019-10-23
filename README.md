@@ -32,21 +32,23 @@
 
 ## Supported HTTP-Requests
 
- |        | /users | /login | /datasets | /datasets/:id | /datasets/:id/:format |
- |:------:|:------:|:------:|:---------:|:-------------:|:---------------------:|
- | GET    | NO     | NO     | YES       | YES           | YES                   |
- | POST   | YES    | YES    | YES       | NO            | NO                    |
- | DELETE | TODO   | NO     | NO        | YES           | NO                    |
+ |        | /users | /users/:id | /login | /datasets | /datasets/:id | /datasets/:id/:format |
+ |:------:|:------:|:----------:|:------:|:---------:|:-------------:|:---------------------:|
+ | GET    | NO     | NO         | NO     | YES       | YES           | YES                   |
+ | POST   | YES    | NO         | YES    | YES       | NO            | NO                    |
+ | DELETE | NO     | YES        | NO     | NO        | YES           | NO                    |
+ | PUT    | NO     | YES        | NO     | NO        | NO            | NO                    |     
 
  ### Requests that require an authentication token
 
- |        | /users | /login | /datasets | /datasets/:id | /datasets/:id/:format |
- |:------:|:------:|:------:|:---------:|:-------------:|:---------------------:|
- | GET    | -      | -      | NO        | NO            | NO                    |
- | POST   | NO     | YES    | YES       | -             | -                     |
- | DELETE | -      | -      | -         | YES           | -                     |
+ |        | /users | /users/:id | /login | /datasets | /datasets/:id | /datasets/:id/:format |
+ |:------:|:------:|:----------:|:------:|:---------:|:-------------:|:---------------------:|
+ | GET    | -      | -          | -      | NO        | NO            | NO                    |
+ | POST   | NO     | -          | NO     | YES       | -             | -                     |
+ | DELETE | -      | YES        | -      | -         | YES           | -                     |
+ | PUT    | -      | YES        | -      | -         | -             | -                     |
 
- The authentication token needs to be sent as the 'Authorization' header value with the prefix 'bearer '. Example: Header key: 'Authorization', value: 'bearer someValidId'.
+ The authentication token needs to be sent as the 'Authorization' header value with the prefix 'bearer '. Example: Header key: 'Authorization', value: 'bearer someValidToken'.
 
  ### HTTP-Request Descriptions
   
@@ -61,6 +63,23 @@
    {
     "username": "unique username",
     "password": "not an easy to guess pw"
+   }
+   ```
+
+  #### /users/:id
+
+   ##### DELETE
+
+   Deletes an account with the same id as the one specified in the URL parameter. All the datasets that the user has posted will also be deleted.
+
+   ##### PUT
+
+   Updates an account with the same id as the one specified in the URL parameter. Only the password can be changed.
+
+   Example body:
+   ```
+   {
+     "password": "new password"
    }
    ```
 
@@ -144,5 +163,3 @@
 
 
 ## TODO 
-
- * Allow users to delete accounts
